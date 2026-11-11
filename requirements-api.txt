@@ -1,0 +1,8 @@
+# Image de production de l'API : inférence ONNX uniquement (pas de TensorFlow, image ≈ 10 fois plus légère)
+numpy==2.5.3
+pillow==12.3.0
+onnxruntime==1.29.0
+fastapi==0.162.0
+pydantic==2.13.5
+python-multipart==0.0.32
+uvicorn==0.54.0

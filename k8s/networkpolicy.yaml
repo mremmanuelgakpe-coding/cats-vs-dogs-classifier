@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: catdog-api
+  namespace: catdog
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: catdog-api}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports:
+        - {port: 8000, protocol: TCP}   # seul le port de l'API est ouvert
+  egress: []                            # aucun appel sortant : le modèle est embarqué dans l'image

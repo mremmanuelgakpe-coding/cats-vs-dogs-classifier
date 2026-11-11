@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Droits minimaux : la CI lit le code, elle n'écrit rien.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests (API, inférence, démo, données, Kubernetes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Installer les dépendances (sans TensorFlow)
+        run: pip install -r requirements-dev.txt
+      - name: Lancer les tests
+        run: PYTHONPATH=src python -m pytest -q
+      - name: Valider les manifests Kubernetes (schémas 1.31, mode strict)
+        run: for f in k8s/*.yaml; do case $f in *kustomization*) ;; *) python -m kubernetes_validate --strict -k 1.31.0 "$f" ;; esac; done
+
+  docker:
+    name: Image Docker de l'API
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow==12.3.0
+      - name: Construire l'image
+        run: docker build -t cats-vs-dogs-api:ci .
+      - name: Test de fumée (conteneur en lecture seule, non-root)
+        run: |
+          docker run -d --name api -p 8000:8000 -e API_KEY=ci-test-key --read-only --tmpfs /tmp \
+            --cap-drop ALL --security-opt no-new-privileges cats-vs-dogs-api:ci
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:8000/health && break; sleep 1; done
+          python3 -c "
+          import io, json, urllib.request
+          from PIL import Image
+          buf = io.BytesIO(); Image.new('RGB', (200, 160), (120, 90, 60)).save(buf, 'JPEG')
+          b = '----ci'; body = (f'--{b}\r\nContent-Disposition: form-data; name=\"image\"; filename=\"x.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n').encode() + buf.getvalue() + f'\r\n--{b}--\r\n'.encode()
+          req = urllib.request.Request('http://127.0.0.1:8000/predict', data=body, headers={'X-API-Key': 'ci-test-key', 'Content-Type': f'multipart/form-data; boundary={b}'})
+          r = json.load(urllib.request.urlopen(req)); print(r); assert r['label'] in ('cat', 'dog', 'unsure')
+          "
+          test "$(docker exec api id -u)" = "10001"
+          docker logs api

@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: catdog-api
+  namespace: catdog
+spec:
+  minAvailable: 1            # au moins un pod pendant une maintenance de nœud
+  selector:
+    matchLabels: {app.kubernetes.io/name: catdog-api}

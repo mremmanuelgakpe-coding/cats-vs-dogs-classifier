@@ -1,0 +1,15 @@
+# Images du jeu Kaggle « Dogs vs. Cats » : on documente le téléchargement au lieu de les republier
+data/raw/
+data/cache/
+data/features/
+# Poids ImageNet : téléchargés et vérifiés par empreinte (make weights)
+weights/*.h5
+logs/
+.env
+__pycache__/
+*.pyc
+.venv/
+.venv-demo/
+venv/
+.pytest_cache/
+.DS_Store

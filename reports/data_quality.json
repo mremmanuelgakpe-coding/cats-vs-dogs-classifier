@@ -1,0 +1,32 @@
+{
+  "files": 24989,
+  "label_mismatch_folder": 0,
+  "unreadable_or_small": 0,
+  "exact_duplicates": 5,
+  "near_duplicate_groups": 27,
+  "conflicting_label_images": 0,
+  "unique_images": 24962,
+  "unique_by_class": {
+    "cat": 12485,
+    "dog": 12477
+  },
+  "sample": {
+    "test": {
+      "cat": 1000,
+      "dog": 1000
+    },
+    "train": {
+      "cat": 4000,
+      "dog": 4000
+    },
+    "val": {
+      "cat": 1000,
+      "dog": 1000
+    }
+  },
+  "median_size": [
+    448,
+    374
+  ],
+  "data_commit": "b2d738611a3daada177ea755c11b4be14726d38c"
+}

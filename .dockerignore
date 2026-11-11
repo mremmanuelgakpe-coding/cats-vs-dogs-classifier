@@ -1,0 +1,15 @@
+.git
+.venv
+.venv-demo
+venv
+__pycache__
+*.pyc
+.env
+data/
+weights/
+logs/
+reports/
+tests/
+demo/
+k8s/
+*.md

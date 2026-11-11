@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: catdog-api
+  namespace: catdog
+  labels: {app.kubernetes.io/name: catdog-api}
+spec:
+  type: ClusterIP            # exposition interne ; passer par un Ingress (TLS) pour un accès public
+  selector: {app.kubernetes.io/name: catdog-api}
+  ports:
+    - {name: http, port: 80, targetPort: http}
