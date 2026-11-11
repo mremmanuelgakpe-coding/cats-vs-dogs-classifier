@@ -78,12 +78,12 @@ with st.spinner("Calcul des zones importantes…"):
 section("Ce qui a compté pour la décision", "Carte d'occlusion : on masque tour à tour chaque case d'une grille 8 × 8 et "
                                             "on mesure de combien la confiance du modèle baisse.")
 l2, r2 = st.columns([1, 1.15], gap="medium")
-k = card(l2, "Zones importantes", "Plus c'est orange, plus la zone a pesé dans la réponse.")
+k = card(l2, "Zones importantes", "Plus la zone est rouge, plus elle a pesé dans la réponse.")
 w, h = im.size
 heat = occ / occ.max() if occ.max() > 0 else occ
 heat_img = Image.fromarray((heat * 255).astype(np.uint8)).resize((w, h), Image.BICUBIC)
 alpha = np.asarray(heat_img, dtype=np.float32)[..., None] / 255 * 0.75
-overlay = np.asarray(im, dtype=np.float32) * (1 - alpha) + np.array([244, 114, 30], np.float32) * alpha
+overlay = np.asarray(im, dtype=np.float32) * (1 - alpha) + np.array([176, 32, 48], np.float32) * alpha
 k.image(Image.fromarray(np.clip(overlay, 0, 255).astype(np.uint8)), use_container_width=True)
 k = card(r2, "Lecture")
 top = np.argsort(occ.ravel())[::-1][:3]

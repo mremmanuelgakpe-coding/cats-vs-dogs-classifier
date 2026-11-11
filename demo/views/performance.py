@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ui import (DATA_BLUE, INK, ORANGE, ORANGE_RAMP, card, chart_config, footer, fr, kpi_grid, pct,  # noqa: E402
+from ui import (DATA_GREEN, INK, BORDO, BORDO_RAMP, card, chart_config, footer, fr, kpi_grid, pct,  # noqa: E402
                 reports, section)
 
 metrics, table, search, hist, _ = reports()
@@ -29,7 +29,7 @@ kpi_grid([
 
 section("Six modèles comparés", "Même échantillon, même test. Les barres fines donnent l'intervalle de confiance à 95 %.")
 l, r = st.columns([1.35, 1], gap="medium")
-k = card(l, "Exactitude sur le test", "Orange : le modèle déployé. Du CNN entraîné de zéro au transfert learning.")
+k = card(l, "Exactitude sur le test", "En bordeaux : le modèle déployé. Du CNN entraîné de zéro au transfert learning.")
 t = table.copy().sort_values("accuracy", ascending=False)
 lo_ax = 0.70                                       # axe de 70 % à 100 % : les écarts entre modèles restent lisibles
 rows = ""
@@ -37,8 +37,8 @@ for _, row in t.iterrows():
     ci = json.loads(row["accuracy_ci95"])
     w = (row["accuracy"] - lo_ax) / (1 - lo_ax) * 100
     l_ci, r_ci = (ci[0] - lo_ax) / (1 - lo_ax) * 100, (ci[1] - lo_ax) / (1 - lo_ax) * 100
-    color = ORANGE if row["deployed"] else DATA_BLUE
-    tag = " · <b style='color:#B2470A'>déployé</b>" if row["deployed"] else ""
+    color = BORDO if row["deployed"] else DATA_GREEN
+    tag = " · <b style='color:#6C151E'>déployé</b>" if row["deployed"] else ""
     rows += (f"<div class='srow wide'><div class='slab'>{row['label']}<span>{row['approach']}{tag}</span></div>"
              f"<div class='strack'><div class='sbar' style='left:0;width:{w:.1f}%;background:{color}'></div>"
              f"<div style='position:absolute;top:6px;height:2px;left:{l_ci:.1f}%;width:{max(r_ci - l_ci, .5):.1f}%;"
@@ -53,7 +53,7 @@ cmd["good"] = cmd["Réel"] == cmd["Prédit"]
 rect = alt.Chart(cmd).mark_rect(cornerRadius=10, stroke="#FFFFFF", strokeWidth=6).encode(
     x=alt.X("Prédit:N", title="Prédit", axis=alt.Axis(orient="top", labelAngle=0, labelFontSize=14, ticks=False, domain=False)),
     y=alt.Y("Réel:N", title="Réel", axis=alt.Axis(labelFontSize=14, ticks=False, domain=False)),
-    color=alt.condition(alt.datum.good, alt.value(DATA_BLUE), alt.value(ORANGE_RAMP[2])))
+    color=alt.condition(alt.datum.good, alt.value(DATA_GREEN), alt.value(BORDO_RAMP[2])))
 lab = alt.Chart(cmd).mark_text(fontSize=22, fontWeight=700).encode(
     x="Prédit:N", y="Réel:N", text="n:Q", color=alt.condition(alt.datum.good, alt.value("#FFFFFF"), alt.value(INK)))
 k.altair_chart(chart_config(rect + lab, 260).configure_axis(grid=False), use_container_width=True)
@@ -80,7 +80,7 @@ if "mobilenet_v2_ft" in hist:
     line = alt.Chart(d).mark_line(point=True, strokeWidth=2.5).encode(
         x=alt.X("Époque:O", axis=alt.Axis(labelAngle=0)),
         y=alt.Y("Exactitude:Q", scale=alt.Scale(zero=False), axis=alt.Axis(labelExpr="format(datum.value * 100, '.0f') + ' %'")),
-        color=alt.Color("Jeu:N", scale=alt.Scale(domain=["Entraînement", "Validation"], range=[DATA_BLUE, ORANGE]),
+        color=alt.Color("Jeu:N", scale=alt.Scale(domain=["Entraînement", "Validation"], range=[DATA_GREEN, BORDO]),
                         legend=alt.Legend(orient="top", title=None)),
         tooltip=["Époque", "Jeu", alt.Tooltip("Exactitude:Q", format=".2%")])
     k.altair_chart(chart_config(line, 260), use_container_width=True)
@@ -89,7 +89,7 @@ trials = pd.DataFrame([{**tr, "Réseau": {"vgg16": "VGG16", "resnet50": "ResNet5
                                          "mobilenet_v2": "MobileNetV2"}[name]}
                        for name, s in search.items() for tr in s["random_search_trials"]])
 k = card(r, "Recherche aléatoire d'hyperparamètres", f"{len(trials)} essais de tête de classification (16 par réseau) : "
-                                                     "couche cachée, dropout, L2, taux d'apprentissage. Chaque point = un essai ; orange = tête retenue.")
+                                                     "couche cachée, dropout, L2, taux d'apprentissage. Chaque point = un essai  ; bordeaux = tête retenue.")
 trials["acc_fr"] = trials["val_accuracy"].map(lambda v: pct(v, 2))
 trials["best"] = trials.groupby("Réseau")["val_loss"].transform("min") == trials["val_loss"]
 pts = alt.Chart(trials).mark_circle(size=110, opacity=0.85).encode(
@@ -97,7 +97,7 @@ pts = alt.Chart(trials).mark_circle(size=110, opacity=0.85).encode(
     y=alt.Y("val_accuracy:Q", title="Exactitude en validation", scale=alt.Scale(zero=False),
             axis=alt.Axis(labelExpr="replace(format(datum.value * 100, '.1f'), '.', ',') + ' %'")),
     xOffset=alt.XOffset("jitter:Q"),
-    color=alt.condition(alt.datum.best, alt.value(ORANGE), alt.value(DATA_BLUE)),
+    color=alt.condition(alt.datum.best, alt.value(BORDO), alt.value(DATA_GREEN)),
     tooltip=["Réseau", alt.Tooltip("units:Q", title="Neurones cachés"), alt.Tooltip("dropout:Q", title="Dropout"),
              alt.Tooltip("lr:Q", title="Taux d'apprentissage", format=".1e"), alt.Tooltip("acc_fr:N", title="Exactitude")]
 ).transform_calculate(jitter="random()")
